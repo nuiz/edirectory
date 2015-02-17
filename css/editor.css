@@ -1,0 +1,10 @@
+.editor {
+    width: 500px;
+    height: 500px;
+    position: relative;
+    border: 2px solid black;
+}
+
+.text-item {
+    cursor: pointer;
+}
