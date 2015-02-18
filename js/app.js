@@ -1,7 +1,7 @@
 /**
  * Created by NUIZ on 16/2/2558.
  */
-var app = angular.module('app',[]);
+var app = angular.module('app', ['ui.sortable']);
 app.controller('bodyCTL',['$scope','$rootScope',function($scope,$rootScope){
     $scope.name = "E-Directory";
 }]);

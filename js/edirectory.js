@@ -2,18 +2,27 @@
  * Created by NUIZ on 17/2/2558.
  */
 
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
 app.controller('edirectoryEditorCTL',['$scope','$rootScope', '$compile', function($scope,$rootScope,$compile){
     $scope.insertText = "";
     $scope.items = [
-        {top: 10, left: 50, text: "111111"},
-        {top: 20, left: 70, text: "222222"}
+//        {top: 10, left: 50, text: "111111"},
+//        {top: 20, left: 70, text: "222222"}
     ];
     $scope.insert = function(){
-        var item = { left: 0, top: 0 };
         var index = $scope.items.length;
+        var item = { left: 0, top: 0, bg: getRandomColor(), text: $scope.insertText, zIndex: index, id: index };
         $scope.items.push(item);
         var element = angular.element(window.document.querySelector('.editor'));
-        var newDirective = angular.element('<div class="text-item" index="'+index+'" draggable>'+$scope.insertText+'</div>');
+        var newDirective = angular.element('<div item-id="'+index+'" class="text-item" index="'+index+'" style="background: '+item.bg+';" draggable>'+$scope.insertText+'</div>');
         newDirective.model = item;
 
         element.append(newDirective);
@@ -23,20 +32,53 @@ app.controller('edirectoryEditorCTL',['$scope','$rootScope', '$compile', functio
         //bindElement(newDirective, item);
 
         $scope.$watch(
-            'items['+index+']',
+            function(){ return item.left; },
             function(newVal, oldVal){
-                element.css({
-                    top:  item.left + 'px',
-                    left: item.top + 'px'
+                newDirective.css({
+//                    top:  item.top + 'px',
+                    left: item.left + 'px'
                 });
+            }
+        );
 
-                console.log(newVal, oldVal);
+        $scope.$watch(
+            function(){ return item.top; },
+            function(newVal, oldVal){
+                newDirective.css({
+                    top:  item.top + 'px'
+//                    left: item.left + 'px'
+                });
+            }
+        );
+
+        $scope.$watch(
+            function(){ return item.zIndex; },
+            function(newVal, oldVal){
+                newDirective.css({
+                    'z-index':  item.zIndex
+//                    left: item.left + 'px'
+                });
             }
         );
     };
 
-    function bindElement(element, model){
+    $scope.sortableOptions = {
+        orderChanged: function(event) {
+            var els = window.document.getElementsByClassName('layer');
+            for(var i = 0; i < els.length; i++){
+                (function(){
+                    var el = angular.element(els[i]);
+                    var itemId = el.attr("item-id");
 
+                    for(var j in $scope.items){
+                        if($scope.items[j].id == itemId){
+                            $scope.items[j].zIndex = i;
+                        }
+                    }
+                }());
+            }
+            $scope.$apply();
+        }
     }
 
     $scope.$watch();
@@ -68,11 +110,15 @@ app.directive('draggable', ['$document' , function($document) {
                 //    left: startX + dx + 'px'
                 //});
 
-                var model = $scope.items[elm.attr("index")];
+                var model = (function(){
+                    for(var i in $scope.items){
+                        if($scope.items[i].id == elm.attr("index")) return $scope.items[i];
+                    }
+                })();
                 model.left = startX + dx;
                 model.top = startY + dy;
 
-                //console.log(model);
+                $scope.$apply();
             }
 
             function mouseup() {
